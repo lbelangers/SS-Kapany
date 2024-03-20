@@ -1,0 +1,8 @@
+# Environnement
+.venv/
+
+# IDE
+.idea
+
+# Private articles
+papers/
