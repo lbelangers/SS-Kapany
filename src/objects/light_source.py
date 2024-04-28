@@ -1,43 +1,33 @@
 """
 Implementation of LightSource
 """
-
 from typing import Literal
+from dataclasses import dataclass
 
 import numpy as np
 
 from scipy import constants, stats
 from matplotlib import pyplot as plt
 
-
+@dataclass
 class LightSource:
+    """
+    LightSource object with optical and numerical parameters.
 
-    def __init__(
-        self,
-        center_frequency: float,
-        frequency_linewidth: float,
-        power: float,
-        frequency_step: float,
-        bandwidth: float,
-        shape: Literal["gaussian"],
-    ) -> None:
-        """
-        Create instance of LightSource object with optical and numerical parameters.
-
-        Parameters:
-            center_frequency: Center frequency in Hz of the light emitted by the source.
-            linewidth: Linewidth of the light source in Hz, defining the spectral width.
-            power: Power of the light source in W.
-            step_size: Frequency step size in Hz
-            bandwidth: Difference between biggest and smallest frequency in Hz
-            shape: Lineshape of the source
-        """
-        self.center_frequency = center_frequency
-        self.frequency_linewidth = frequency_linewidth
-        self.power = power
-        self.frequency_step = frequency_step
-        self.bandwidth = bandwidth
-        self.shape = shape
+    Parameters:
+        center_frequency: Center frequency in Hz of the light emitted by the source.
+        linewidth: Linewidth of the light source in Hz, defining the spectral width.
+        power: Power of the light source in W.
+        step_size: Frequency step size in Hz
+        bandwidth: Difference between biggest and smallest frequency in Hz
+        shape: Lineshape of the source
+    """
+    center_frequency: float
+    frequency_linewidth: float
+    power: float
+    frequency_step: float
+    bandwidth: float
+    shape: Literal["gaussian"]
 
     @property
     def frequencies(self) -> np.ndarray:
