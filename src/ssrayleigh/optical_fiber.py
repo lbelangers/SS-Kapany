@@ -31,6 +31,10 @@ class OpticalFiber:
         average_backscattering_field_coefficient: Coefficient of the field scattered backwards, inside the numerical aperture, in um^-2
         length: Fiber length in m
         seend: Seed to generate random values from
+
+    Notes: 
+        Implementation detailed in 
+            P. Tovar et al., Modelling Intensity Fluctuations of Rayleigh Backscattered Coherent Light in Single-Mode Fiber 
     """
     refractive_index: float
     refractive_index_variation: float
@@ -78,7 +82,7 @@ class OpticalFiber:
     @property
     def segment_locations(self) -> np.ndarray:
         """Location of each fiber segment"""
-        return np.cumsum(self.segments)
+        return np.cumsum(self.segment_sizes)
 
     @cached_property
     def refractive_indices(self) -> np.ndarray:

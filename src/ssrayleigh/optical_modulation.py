@@ -2,9 +2,11 @@
 Implementation of optical modulation by creating and applying pulse.
 """
 import numpy as np
+import torch
 
 from matplotlib import pyplot as plt
 from scipy import ndimage
+from torch.nn import functional
 
 
 def get_pulse_time_array(
@@ -54,6 +56,9 @@ def get_sine_rectangular_pulse(
             L. B. Liokumovich et al., Fundamentals of Optical Fiber Sensing Schemes Based on 
             Coherent Optical Time Domain Reflectometry: Signal Model Under Static Fiber Conditions. 
     """
+    if rise_time > pulse_width:
+        raise NotImplementedError
+    
     # Half height of sine function is at half way
     plateau_width = pulse_width - rise_time
 
@@ -75,16 +80,35 @@ def get_sine_rectangular_pulse(
 
     return np.piecewise(time, conditions, funcs)
 
-def apply_pulse(impulse_response: np.ndarray, pulse: np.ndarray, axis: int = 0):
+def apply_pulse(impulse_response: np.ndarray, pulse: np.ndarray, axis: int = 0, gpu: bool = False):
     """
     Apply pulse to impulse response of LTI system, by computing a convolution over given axis
 
     Parameters:
-        impulse_response: Impulse response of LTI system 
-        pulse: Weights of given pulse shape and width
+        impulse_response: Impulse response of LTI system, shape (N, M)
+        pulse: Weights of given pulse shape and width, shape (N)
         axis: Axis to apply convolution over
+        gpu: If True, computes using gpu
     """
-    return ndimage.convolve1d(impulse_response, pulse, axis)   
+    if not gpu:
+        return ndimage.convolve1d(impulse_response, pulse, axis)  
+     
+    else:
+        if not torch.cuda.is_available():
+            raise NotImplementedError("GPU computing is only implemented using CUDA.")
+        
+        with torch.no_grad():
+            # Move numpy arrays to CUDA
+            impulse_response = torch.from_numpy(impulse_response).cuda()
+            pulse = torch.from_numpy(pulse)
+            pulse = torch.complex(pulse, torch.zeros_like(pulse)).cuda()
+
+            # PyTorch expects tensors in the format (batch, channel, length)
+            impulse_response = impulse_response.unsqueeze(1)
+            pulse = pulse.unsqueeze(-1).unsqueeze(-1)
+
+            return functional.conv1d(impulse_response, pulse).cpu().numpy().sum(axis=1) * 1e-2
+
 
 
 if __name__ == "__main__":
