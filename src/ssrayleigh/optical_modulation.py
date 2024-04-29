@@ -109,9 +109,9 @@ def apply_pulse(impulse_response: np.ndarray, pulse: np.ndarray, axes: int = 0, 
 
 
 if __name__ == "__main__":
-    pulse_width = 50e-9
-    segment_duration = 1e-12
-    rise_time = 10e-9
+    pulse_width = 1e-9        # 1 ns
+    segment_duration = 1e-11
+    rise_time = pulse_width / 10
 
     time = get_pulse_time_array(pulse_width, segment_duration, rise_time)
 
@@ -119,8 +119,9 @@ if __name__ == "__main__":
     sine_pulse = get_sine_rectangular_pulse(pulse_width, time, rise_time)
 
     plt.plot()
-    plt.plot(time * 1e9, rec_pulse, label="Rectangular pulse")
-    plt.plot(time * 1e9, sine_pulse, label="Sine-sloped rectangular pulse")
-    plt.xlabel("Time [ns]")
+    plt.plot(time * 1e9, rec_pulse, label="Impulsion rectangulaire")
+    plt.plot(time * 1e9, sine_pulse, label="Impulsion rectangulaire à pente sinusoïdale")
+    plt.xlabel("Temps [ns]")
     plt.ylabel("Amplitude [-]")
+    plt.legend()
     plt.show()

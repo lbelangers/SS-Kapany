@@ -50,6 +50,7 @@ class OpticalFiber:
         # Initialize RNG with the given seed
         self._generator = np.random.default_rng(self.seed)
 
+    @property
     def segment_duration(self) -> float:
         """Duration of a segment, in s"""
         return self.refractive_index * self.segment_size / constants.c
@@ -94,7 +95,7 @@ class OpticalFiber:
 
 
 if __name__ == "__main__":
-    optical_fiber = OpticalFiber(
+    fiber = OpticalFiber(
         refractive_index=1.44,
         refractive_index_variation=1e-7,
         attenuation_coefficient=0.2,  # 0.2 dB / km
@@ -102,16 +103,16 @@ if __name__ == "__main__":
         segment_size_variation=5,  # 5 %
         mode_field_diameter=2.13,
         average_backscattering_field_coefficient=70,
-        length=1e3,  # 1 km
+        length=10e3,  # 10 km
     )
 
     fig, (ax1, ax2) = plt.subplots(1, 2, layout="constrained", sharey=True)
 
-    ax1.hist(optical_fiber.segment_sizes * 1e2)
+    ax1.hist(fiber.segment_sizes * 1e2)
     ax1.set_xlabel("Segment size [cm]")
     ax1.set_ylabel("Occurence [-]")
 
-    ax2.hist(optical_fiber.refractive_indices)
+    ax2.hist(fiber.refractive_indices)
     ax2.set_xlabel("Refractive index [-]")
 
     plt.show()

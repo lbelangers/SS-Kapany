@@ -135,23 +135,19 @@ class LightSource:
 
 
 if __name__ == "__main__":
-    central_frequency = 194e12  # 194 THz
-    central_wavelength = constants.c / central_frequency
-    wavelength_linewidth = 10e-12  # 10 pm
-    frequency_linewidth = constants.c / (
-        central_wavelength - wavelength_linewidth / 2
-    ) - constants.c / (central_wavelength + wavelength_linewidth / 2)
+    central_frequency = 194e12                                                         # 194 THz
+    frequency_linewidth = 3e3                                                          # 3 KHz
 
-    light_source = LightSource(
+    source = LightSource(
         frequency=central_frequency,
         frequency_linewidth=frequency_linewidth,
-        power=1e-3,  # 1 mW = 0 dBm
-        frequency_step=2.5e6,  # 2.5 MHz
-        bandwidth=10 * frequency_linewidth,
+        power=1e-3,                                                                 # 1 mW = 0 dBm
+        frequency_step=250,                                                         # 250 Hz
+        bandwidth=8 * frequency_linewidth,
         shape="lorentzian",
     )
 
-    plt.plot(light_source.frequencies / 1e12, light_source.normalized_lineshape)
+    plt.plot(source.frequencies / 1e12, source.normalized_lineshape)
     plt.xlabel("Frequencies [THz]")
     plt.ylabel("Amplitude [a.u.]")
     plt.show()

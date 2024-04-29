@@ -23,6 +23,18 @@ class Photodector:
     responsitivity: float
     bandwidth: float 
 
+    def get_bandwidth_points(self, segment_duration) -> int:
+        """
+        Compute bandwidth in points.
+
+        Parameters:
+            segment_duration: Time per scattering zone, in s
+
+        Return:
+            Number of points for moving average
+        """
+        return int(1 / (segment_duration * self.bandwidth))
+
     def detect(self, fields: np.ndarray, segment_duration: float) -> np.ndarray:
         """
         Detect given field, converting to intensity, then to current.
@@ -40,10 +52,23 @@ class Photodector:
                 A. Masoudi et T. P. Nweson, Analysis of distributed optical fibre 
                 acoustic sensors through numerical modelling
         """
-        bandwidth_points = int(1 / (segment_duration * self.bandwidth))
         intensity = (np.abs(fields) ** 2).sum(axis=1)
         current = self.responsitivity * intensity
         
-        return moving_average(current, n=bandwidth_points)
+        return moving_average(current, n=self.get_bandwidth_points(segment_duration))
+    
+    def crop_to_bandwidth(self, array: np.ndarray, segment_duration: float) -> np.ndarray:
+        """
+        Crop array by moving average size.
+
+        Parameters:
+            array: Array to crop
+            segment_duration: Time per scattering zone, in s
+
+        Returns:
+            Cropped array
+        """
+        N = self.get_bandwidth_points(segment_duration)
+        return array[N//2:-(N//2)+ 1 + N % 2]
 
     
