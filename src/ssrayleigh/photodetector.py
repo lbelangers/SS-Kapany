@@ -35,7 +35,7 @@ class Photodector:
         """
         return int(1 / (segment_duration * self.bandwidth))
 
-    def detect(self, fields: np.ndarray, segment_duration: float) -> np.ndarray:
+    def detect(self, fields: np.ndarray, segment_duration: float, lineshape: np.ndarray) -> np.ndarray:
         """
         Detect given field, converting to intensity, then to current.
         Bandwidth is modelled as a moving average.
@@ -43,6 +43,7 @@ class Photodector:
         Parameters:
             fields: Array of backscattered EM field of shape (N, M) for N scattering zones and M wavelengths
             segment_duration: Time per scattering zone, in s
+            lineshape: Lineshape of the source used
 
         Returns:
             Array of current detected for each scattering zones
@@ -52,7 +53,7 @@ class Photodector:
                 A. Masoudi et T. P. Nweson, Analysis of distributed optical fibre 
                 acoustic sensors through numerical modelling
         """
-        intensity = (np.abs(fields) ** 2).sum(axis=1)
+        intensity = ((np.abs(fields) ** 2) * lineshape[None,:]).sum(axis=1)
         current = self.responsitivity * intensity
         
         return moving_average(current, n=self.get_bandwidth_points(segment_duration))
