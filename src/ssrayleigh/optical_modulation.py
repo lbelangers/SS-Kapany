@@ -5,8 +5,7 @@ import numpy as np
 import torch
 
 from matplotlib import pyplot as plt
-from scipy import ndimage
-from torch.nn import functional
+from scipy import signal
 
 
 def get_pulse_time_array(
@@ -80,7 +79,7 @@ def get_sine_rectangular_pulse(
 
     return np.piecewise(time, conditions, funcs)
 
-def apply_pulse(impulse_response: np.ndarray, pulse: np.ndarray, axis: int = 0, gpu: bool = False):
+def apply_pulse(impulse_response: np.ndarray, pulse: np.ndarray, axes: int = 0, gpu: bool = False):
     """
     Apply pulse to impulse response of LTI system, by computing a convolution over given axis
 
@@ -91,7 +90,7 @@ def apply_pulse(impulse_response: np.ndarray, pulse: np.ndarray, axis: int = 0, 
         gpu: If True, computes using gpu
     """
     if not gpu:
-        return ndimage.convolve1d(impulse_response, pulse, axis)  
+        return signal.fftconvolve(impulse_response, pulse[:,None], axes=axes, mode="same")
      
     else:
         if not torch.cuda.is_available():
@@ -103,11 +102,9 @@ def apply_pulse(impulse_response: np.ndarray, pulse: np.ndarray, axis: int = 0, 
             pulse = torch.from_numpy(pulse)
             pulse = torch.complex(pulse, torch.zeros_like(pulse)).cuda()
 
-            # PyTorch expects tensors in the format (batch, channel, length)
-            impulse_response = impulse_response.unsqueeze(1)
-            pulse = pulse.unsqueeze(-1).unsqueeze(-1)
+            # TODO: Implement convolution via FFT multiplication
 
-            return functional.conv1d(impulse_response, pulse).cpu().numpy().sum(axis=1) * 1e-2
+            raise NotImplementedError
 
 
 

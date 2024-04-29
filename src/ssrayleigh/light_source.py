@@ -18,7 +18,7 @@ class LightSource:
 
     Parameters:
         center_frequency: Center frequency in Hz of the light emitted by the source.
-        linewidth: Linewidth of the light source in Hz, defining the spectral width.
+        linewidth: FWHM of the light source in Hz, defining the spectral width.
         power: Power of the light source in W.
         step_size: Frequency step size in Hz
         bandwidth: Difference between biggest and smallest frequency in Hz
@@ -87,14 +87,14 @@ class LightSource:
         """
         if self.shape == "gaussian":
             distribution = stats.norm.pdf(
-                self.frequencies, self.frequency, self.frequency_linewidth
+                self.frequencies, self.frequency, self.frequency_linewidth / 2.335
             )
 
             return distribution / distribution.sum()
 
         elif self.shape == "lorentzian":
             distribution = stats.cauchy.pdf(
-                self.frequencies, self.frequency, self.frequency_linewidth
+                self.frequencies, self.frequency, self.frequency_linewidth / 2
             )
 
             return distribution / distribution.sum()
@@ -107,12 +107,32 @@ class LightSource:
         Compute the coherence length of the light source in a material of given
         refractive index.
 
+        Parameters:
+            refractive_index: Refractive index of propagating media
+
         Returns:
             Coherence length in meters
         """
-        return self.wavelength**2 / (
-            refractive_index * self.wavelength_linewidth
+        return self.wavelength**2 / (refractive_index * self.wavelength_linewidth)
+
+    def get_electric_field_amplitude(
+        self, area: float, refractive_index: float = 1
+    ) -> float:
+        """
+        Compute the amplitude of the electric field in a given medium.
+
+        Parameters:
+            area: Amplitude of electric field
+            refractive_index: Refractive index of propagating media
+
+        Returns:
+            Amplitude of the electric field
+        """
+        intensity = self.power / area
+        return np.sqrt(
+            2 * intensity / (constants.c * constants.epsilon_0 * refractive_index)
         )
+
 
 if __name__ == "__main__":
     central_frequency = 194e12  # 194 THz
