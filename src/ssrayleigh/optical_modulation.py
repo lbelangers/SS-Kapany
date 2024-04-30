@@ -6,6 +6,7 @@ import torch
 
 from matplotlib import pyplot as plt
 from scipy import signal
+from torchaudio import transforms
 
 
 def get_pulse_time_array(
@@ -79,7 +80,10 @@ def get_sine_rectangular_pulse(
 
     return np.piecewise(time, conditions, funcs)
 
-def apply_pulse(impulse_response: np.ndarray, pulse: np.ndarray, axes: int = 0, gpu: bool = False):
+from scipy import signal
+from torch import fft
+
+def apply_pulse(impulse_response: np.ndarray, pulse: np.ndarray, axes: int = 0, gpu: bool = False) -> np.ndarray:
     """
     Apply pulse to impulse response of LTI system, by computing a convolution over given axis
 
@@ -96,20 +100,39 @@ def apply_pulse(impulse_response: np.ndarray, pulse: np.ndarray, axes: int = 0, 
         if not torch.cuda.is_available():
             raise NotImplementedError("GPU computing is only implemented using CUDA.")
         
+        raise NotImplementedError("Correct cropping of output array is not implented yet.")
+
         with torch.no_grad():
-            # Move numpy arrays to CUDA
-            impulse_response = torch.from_numpy(impulse_response).cuda()
+            # Move numpy arrays to torch
+            impulse_response = torch.from_numpy(impulse_response)
             pulse = torch.from_numpy(pulse)
-            pulse = torch.complex(pulse, torch.zeros_like(pulse)).cuda()
 
-            # TODO: Implement convolution via FFT multiplication
+            # Compute size of FFT output 
+            size = impulse_response.size(0) + pulse.size(0) - 1
 
-            raise NotImplementedError
+            # Find next power of 2 for speedup
+            fsize = 2 ** np.ceil(np.log2(size)).astype(int)
+
+            # Move arrays to CUDA
+            impulse_response = impulse_response.cuda()
+            pulse = pulse.cuda()
+
+            # Compute FFT of pulse, a real signal, and broadcast to impulse response shape
+            fpulse = torch.fft.fft(pulse, n=fsize).unsqueeze(-1)
+            fimpulse_response = torch.fft.fft(impulse_response, dim=0, n=fsize)
+
+            # Apply convolution
+            fresult = fpulse * fimpulse_response
+
+            # Get result in time domain, croped to orginal size
+            result = torch.fft.ifft(fresult, dim=0)[0:size, :]
+
+            return result.cpu().numpy()
 
 
 
 if __name__ == "__main__":
-    pulse_width = 1e-9        # 1 ns
+    pulse_width = 1e-9                  # 1 ns
     segment_duration = 1e-11
     rise_time = pulse_width / 10
 
