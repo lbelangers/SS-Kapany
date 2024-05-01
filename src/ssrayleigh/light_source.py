@@ -90,17 +90,15 @@ class LightSource:
                 self.frequencies, self.frequency, self.frequency_linewidth / 2.335
             )
 
-            return distribution / distribution.sum()
-
         elif self.shape == "lorentzian":
             distribution = stats.cauchy.pdf(
                 self.frequencies, self.frequency, self.frequency_linewidth / 2
             )
-
-            return distribution / distribution.sum()
-
+            
         else:
             raise NotImplementedError
+        
+        return distribution / distribution.sum()
 
     def get_coherence_length(self, refractive_index: float = 1) -> float:
         """
