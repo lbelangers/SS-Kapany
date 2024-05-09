@@ -9,3 +9,6 @@ papers/
 
 # Python junk
 **/__pycache__/
+
+# Test files
+**/test.ipynb
